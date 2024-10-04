@@ -35,7 +35,7 @@ TimeChangeRule *tcr;           // pointer to the time change rule, use to get TZ
 
 /*-------- PREFERENCES ----------*/
 String credentials[][2] = {
-    {"SKY1CTAG-2.4G", "fVMHsgvY2fsD"},
+    {"YOUR WIFI NAME", "PASSWORD"}, //Change according to your own wifi setup
     {"OptionalOtherSSID", "OptionalOtherSSDPassword"},
 };
 const bool SHOW_24HOUR = false;
