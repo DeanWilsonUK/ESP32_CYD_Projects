@@ -32,12 +32,20 @@
 // 30000  = 30 seconds
 // 60000  = 1 minute
 // 120000 = 2 minutes (classic VSMP speed)
+// 300000 = 5 minutes (very slow)
 #define FRAME_DELAY_MS       30000
 
 // Backlight brightness 0-255
 #define BACKLIGHT_BRIGHTNESS    180
 
+// Backlight dimming during frame transitions
+// Set to false to disable the subtle dim/brighten effect
+#define DIM_ON_TRANSITION      true
+#define DIM_BRIGHTNESS           20
+#define DIM_DURATION_MS         200
+
 // Start from this frame number (useful to skip blank frames at beginning)
+// Change to 3, 5, etc. if your extraction has blank frames at the start
 #define START_FRAME               0
 
 // ============================================================
@@ -61,8 +69,8 @@ int currentFrame = START_FRAME;
 // ============================================================
 // Backlight control
 // ============================================================
-void setBacklight(bool on) {
-    digitalWrite(TFT_BACKLIGHT_PIN, on ? HIGH : LOW);
+void setBacklight(int brightness) {
+    ledcWrite(TFT_BACKLIGHT_PIN, brightness);
 }
 
 // ============================================================
@@ -80,13 +88,11 @@ bool initSDCard() {
 
 int readManifest() {
     if (!SD.exists("/manifest.txt")) {
-        Serial.println("No manifest.txt, counting frames...");
+        Serial.println("No manifest.txt found, counting frames...");
         return countFrames();
     }
-    
     File f = SD.open("/manifest.txt");
     if (!f) return 0;
-    
     int frames = 0;
     while (f.available()) {
         String line = f.readStringUntil('\n');
@@ -102,24 +108,20 @@ int readManifest() {
 
 int countFrames() {
     File dir = SD.open("/frames");
-    if (!dir) {
-        Serial.println("No /frames directory!");
-        return 0;
+    if (!dir) { 
+        Serial.println("No /frames directory!"); 
+        return 0; 
     }
-    
     int count = 0;
     while (true) {
         File entry = dir.openNextFile();
         if (!entry) break;
-        
         String name = String(entry.name());
         name.toLowerCase();
         if (name.endsWith(".bmp")) count++;
-        
         entry.close();
     }
     dir.close();
-    
     Serial.printf("Counted %d frames\n", count);
     return count;
 }
@@ -157,7 +159,7 @@ bool displayBMP(const char* filepath) {
 
     // Check BMP signature
     if (f.read() != 'B' || f.read() != 'M') {
-        Serial.println("Not a valid BMP file");
+        Serial.println("Not a BMP file");
         f.close();
         return false;
     }
@@ -165,7 +167,6 @@ bool displayBMP(const char* filepath) {
     // Skip file size and reserved fields
     read32(f);  // File size
     read32(f);  // Reserved
-    
     uint32_t dataOffset = read32(f);  // Pixel data offset
 
     // Read DIB header
@@ -190,7 +191,8 @@ bool displayBMP(const char* filepath) {
 
     Serial.printf("Drawing BMP: %dx%d pixels\n", imgWidth, imgHeight);
 
-    // Draw pixel by pixel (slow but reliable)
+    // Draw pixel by pixel
+    // (Slow but reliable and works with limited heap memory)
     for (int row = 0; row < imgHeight; row++) {
         // Calculate source row (BMP is bottom-to-top)
         int srcRow = flipped ? (imgHeight - 1 - row) : row;
@@ -205,7 +207,7 @@ bool displayBMP(const char* filepath) {
             uint8_t r = f.read();
             
             // Invert colours to correct for dithering
-            // (our BMPs are saved as white-on-black but display as black-on-white)
+            // (Our BMPs save as white-on-black but display as black-on-white)
             tft.drawPixel(col, row, tft.color565(255-r, 255-g, 255-b));
         }
         
@@ -229,22 +231,16 @@ void setup() {
     Serial.println("  ESP32-CYD Slow Movie Player");
     Serial.println("============================\n");
 
-    // Configure backlight (simple on/off, no PWM)
-    pinMode(TFT_BACKLIGHT_PIN, OUTPUT);
-    digitalWrite(TFT_BACKLIGHT_PIN, LOW);  // Start with backlight off
+    // Configure backlight with PWM
+    ledcAttach(TFT_BACKLIGHT_PIN, 5000, 8);
+    setBacklight(DIM_BRIGHTNESS);
 
     // Initialise display
     tft.init();
     tft.setRotation(1);  // Landscape orientation
     tft.fillScreen(TFT_BLACK);
-    
-    // Show loading message
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    tft.setTextSize(2);
     tft.drawCentreString("Loading...", 160, 110, 2);
-    
-    // Turn backlight on
-    setBacklight(true);
 
     // Initialise SD card
     if (!initSDCard()) {
@@ -274,6 +270,7 @@ void setup() {
     Serial.printf("Starting from frame %d\n\n", currentFrame);
 
     tft.fillScreen(TFT_BLACK);
+    setBacklight(BACKLIGHT_BRIGHTNESS);
 }
 
 // ============================================================
@@ -291,11 +288,6 @@ void loop() {
     
     if (!success) {
         Serial.printf("Warning: Could not display frame %d\n", currentFrame);
-        // Show error briefly but continue
-        tft.fillScreen(TFT_BLACK);
-        tft.setTextColor(TFT_RED, TFT_BLACK);
-        tft.drawCentreString("Frame error", 160, 120, 2);
-        delay(2000);
     }
 
     // Advance to next frame (loops back to 0 at end)
@@ -308,5 +300,12 @@ void loop() {
     unsigned long startWait = millis();
     while (millis() - startWait < FRAME_DELAY_MS) {
         delay(100);
+    }
+
+    // Brief dim before transition (if enabled)
+    if (DIM_ON_TRANSITION) {
+        setBacklight(DIM_BRIGHTNESS);
+        delay(DIM_DURATION_MS);
+        setBacklight(BACKLIGHT_BRIGHTNESS);
     }
 }
