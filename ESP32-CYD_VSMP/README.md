@@ -2,7 +2,13 @@
 
 A digital picture frame that displays movie frames in extreme slow motion on the ESP32 Cheap Yellow Display (CYD). Inspired by Tom Whitwell's [Very Slow Movie Player](https://github.com/TomWhitwell/SlowMovie) for Raspberry Pi and e-ink displays.
 
-![ESP32-CYD displaying a dithered frame from Un Chien Andalou](docs/example.jpg)
+![ESP32-CYD displaying a dithered frame from Un Chien Andalou](images/Screenshot.jpg)
+
+## See It In Action
+
+![Timelapse of frames transitioning](images/timelapse.gif)
+
+*Un Chien Andalou playing at 30 seconds per frame, showing the distinctive Floyd-Steinberg dithered aesthetic*
 
 ## What is this?
 
@@ -278,6 +284,20 @@ Hardware and software guidance:
 - **Random Nerd Tutorials** - [ESP32-CYD setup guide](https://randomnerdtutorials.com/cheap-yellow-display-esp32-2432s028r/)
 - **Bodmer** - [TFT_eSPI library](https://github.com/Bodmer/TFT_eSPI)
 
+## Gallery
+
+### The Dithering Effect
+
+Floyd-Steinberg dithering transforms colour movie frames into high-contrast black and white images with a distinctive woodblock print aesthetic:
+
+![Example of Floyd-Steinberg dithered frame](images/hero-eye-dithered.bmp)
+
+*The iconic eye-slicing scene from Un Chien Andalou (1929) after Floyd-Steinberg dithering*
+
+### Share Your Build!
+
+Have you built your own ESP32-CYD VSMP? Open an issue with photos of your setup and what movie you're playing. We'd love to see it!
+
 ## License
 
 MIT License - feel free to modify and share
@@ -285,10 +305,6 @@ MIT License - feel free to modify and share
 ## Contributing
 
 Found a bug? Want to improve the documentation? Pull requests welcome!
-
-## Gallery
-
-Share your VSMP setups! Open an issue with a photo of your build and what movie you're playing.
 
 ---
 
