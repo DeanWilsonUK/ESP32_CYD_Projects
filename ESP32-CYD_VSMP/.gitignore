@@ -10,7 +10,7 @@ env/
 # Test outputs
 frames/
 frames_test/
-*.bmp
+# *.bmp
 manifest.txt
 
 # macOS
