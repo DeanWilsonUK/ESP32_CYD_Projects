@@ -290,9 +290,9 @@ Hardware and software guidance:
 
 Floyd-Steinberg dithering transforms colour movie frames into high-contrast black and white images with a distinctive woodblock print aesthetic:
 
-![Example of Floyd-Steinberg dithered frame](images/hero-eye-dithered.bmp)
+![Before and after Floyd-Steinberg dithering — Un Chien Andalou](images/compare.gif)
 
-*The iconic eye-slicing scene from Un Chien Andalou (1929) after Floyd-Steinberg dithering*
+*The iconic eye-slicing scene from Un Chien Andalou (1929) — original frame vs. Floyd-Steinberg dithered output*
 
 ### Share Your Build!
 
